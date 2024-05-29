@@ -1,0 +1,36 @@
+double flow; // Liters of passing water volume
+volatile unsigned long pulse_freq;
+unsigned long last_pulse_time = 0;
+const int buzzerPin = 5; // Define the buzzer pin
+const unsigned long pulse_threshold = 10000; // 10 seconds in milliseconds
+
+void setup() {
+  pinMode(2, INPUT);
+  pinMode(buzzerPin, OUTPUT); // Set the buzzer pin as an output
+  Serial.begin(115200);
+  attachInterrupt(0, pulse, RISING); // Setup Interrupt
+}
+
+void loop () {
+  if (pulse_freq == 0) {
+    flow = 0; // Set flow to 0 if no pulses detected
+    digitalWrite(buzzerPin, HIGH); // Turn on buzzer if flow is zero
+  } else {
+    flow = 0.00225 * pulse_freq; // Calculate flow rate
+    digitalWrite(buzzerPin, LOW); // Turn off buzzer if flow is non-zero
+  }
+  
+  if (millis() - last_pulse_time > pulse_threshold && pulse_freq > 0) {
+    // Activate buzzer if continuous flow pulses occur for 10 seconds
+    digitalWrite(buzzerPin, HIGH);
+  }
+  
+  Serial.print(flow, DEC);
+  Serial.println("L");
+  delay(500);
+}
+
+void pulse() { // Interrupt function
+  pulse_freq++;
+  last_pulse_time = millis();
+}
